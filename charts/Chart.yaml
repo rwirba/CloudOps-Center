@@ -1,0 +1,4 @@
+apiVersion: v2
+name: cloudops-center
+description: Helm chart for CloudOps Center
+version: 0.1.0

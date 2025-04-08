@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cloudops-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cloudops-backend
+  template:
+    metadata:
+      labels:
+        app: cloudops-backend
+    spec:
+      containers:
+        - name: backend
+          image: {{ .Values.backend.image }}
+          ports:
+            - containerPort: {{ .Values.backend.servicePort }}
+          envFrom:
+            - configMapRef:
+                name: cloudops-config
