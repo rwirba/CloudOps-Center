@@ -7,4 +7,4 @@ frontend:
 
 ingress:
   enabled: true
-  host: cloudops.yourdomain.com
+  host: cloudops-center.kihhuf.org
