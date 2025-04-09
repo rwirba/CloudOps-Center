@@ -44,7 +44,7 @@ pipeline {
     stage('Deploy to Kubernetes') {
       steps {
         withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
-            dir('charts/cloudops-center') {
+            dir('charts') {
                 sh '''
                     echo "🚀 Deploying to Kubernetes using Helm..."
                     helm upgrade --install cloudops-center charts/cloudops-center \
