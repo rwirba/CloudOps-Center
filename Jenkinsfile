@@ -10,7 +10,7 @@ pipeline {
   stages {
     stage('Checkout') {
       steps {
-        git 'https://github.com/<your-username>/CloudOps-Center.git'
+        git 'https://github.com/rwirba/CloudOps-Center.git'
       }
     }
 
