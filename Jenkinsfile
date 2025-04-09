@@ -47,7 +47,7 @@ pipeline {
             dir('charts') {
                 sh '''
                     echo "🚀 Deploying to Kubernetes using Helm..."
-                    helm upgrade --install cloudops-center charts \
+                    helm upgrade --install cloudops-center . \
                     --namespace cloudops-center --create-namespace --wait
                 '''
             }    
@@ -57,6 +57,10 @@ pipeline {
   }
 
   post {
+    always {
+      echo '🧹 Cleaning workspace...'
+      cleanWs()
+    }
     success {
       echo '✅ CloudOps Center deployed successfully!'
     }
