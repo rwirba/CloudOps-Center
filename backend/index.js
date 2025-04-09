@@ -10,11 +10,7 @@ app.use(cors());
 app.use(express.json());
 
 // AWS Configuration
-AWS.config.update({
-  region: 'us-east-1',
-  accessKeyId: process.env.AWS_ACCESS_KEY,
-  secretAccessKey: process.env.AWS_SECRET_KEY
-});
+AWS.config.update({ region: 'us-east-1' });
 
 const ec2 = new AWS.EC2();
 const cloudwatch = new AWS.CloudWatch();
