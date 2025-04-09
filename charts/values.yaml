@@ -1,8 +1,8 @@
 backend:
-  image: cloudops-backend:latest
+  image: mitechllc/cloudops-backend:latest
   servicePort: 4000
 frontend:
-  image: cloudops-frontend:latest
+  image: mitechllc/cloudops-frontend:latest
   servicePort: 80
 
 ingress:
