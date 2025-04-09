@@ -47,7 +47,7 @@ pipeline {
             dir('charts') {
                 sh '''
                     echo "🚀 Deploying to Kubernetes using Helm..."
-                    helm upgrade --install cloudops-center charts/cloudops-center \
+                    helm upgrade --install cloudops-center charts \
                     --namespace cloudops-center --create-namespace --wait
                 '''
             }    
