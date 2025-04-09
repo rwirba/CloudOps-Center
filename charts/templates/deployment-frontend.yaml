@@ -12,6 +12,8 @@ spec:
       labels:
         app: cloudops-frontend
     spec:
+      imagePullSecrets:
+        - name: dockerhub-auth
       containers:
         - name: frontend
           image: {{ .Values.frontend.image }}
