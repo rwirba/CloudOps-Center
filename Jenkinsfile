@@ -60,6 +60,10 @@ pipeline {
   }
 
   post {
+    always {
+      echo '🧹 Cleaning Jenkins workspace...'
+      cleanWs()
+    }
     success {
       echo '✅ CloudOps Center deployed successfully!'
     }
