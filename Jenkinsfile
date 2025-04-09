@@ -44,11 +44,13 @@ pipeline {
     stage('Deploy to Kubernetes') {
       steps {
         withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
-          sh '''
-            echo "🚀 Deploying to Kubernetes using Helm..."
-            helm upgrade --install cloudops-center charts/cloudops-center \
-              --namespace cloudops-center --create-namespace --wait
-          '''
+            dir('charts/cloudops-center') {
+                sh '''
+                    echo "🚀 Deploying to Kubernetes using Helm..."
+                    helm upgrade --install cloudops-center charts/cloudops-center \
+                    --namespace cloudops-center --create-namespace --wait
+                '''
+            }    
         }
       }
     }
