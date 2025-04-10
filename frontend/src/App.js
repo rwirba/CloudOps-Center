@@ -4,6 +4,7 @@ import Layout from './components/Layout';
 import DashboardOverview from './pages/DashboardOverview';
 import GitHubRepos from './components/GitHubRepos';
 import AWSResources from './pages/AWSResources';
+import PodsOverview from './components/PodsOverview';
 import TrivyScan from './components/TrivyScan';
 import axios from 'axios';
 import { ThemeProvider } from '@mui/material/styles';
