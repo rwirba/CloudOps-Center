@@ -2,7 +2,7 @@ pipeline {
   agent any
 
   environment {
-    DOCKER_CREDS = credentials('dockerhub-creds')      // Docker Hub username/password (stored in Jenkins)
+    DOCKER_CREDS = credentials('dockerhub-creds')
     DOCKER_USER  = "${DOCKER_CREDS_USR}"
     DOCKER_PASS  = "${DOCKER_CREDS_PSW}"
   }
@@ -11,19 +11,6 @@ pipeline {
     stage('Checkout') {
       steps {
         git 'https://github.com/rwirba/CloudOps-Center.git'
-      }
-    }
-
-    stage('Build & Push Backend') {
-      steps {
-        dir('backend') {
-          sh '''
-            echo "🛠️ Building backend..."
-            docker build -t $DOCKER_USER/cloudops-backend:latest .
-            echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
-            docker push $DOCKER_USER/cloudops-backend:latest
-          '''
-        }
       }
     }
 
@@ -43,31 +30,37 @@ pipeline {
         }
       }
     }
+
     stage('Trivy Scan & Inject') {
       steps {
         dir('backend') {
           sh '''
             echo "🔍 Scanning frontend image..."
-            trivy image --severity HIGH,CRITICAL --format json -o trivy-output-frontend.json $DOCKER_USER/cloudops-frontend:latest || true
-
-            echo "🔍 Scanning backend image..."
-            trivy image --severity HIGH,CRITICAL --format json -o trivy-output-backend.json $DOCKER_USER/cloudops-backend:latest || true
-
-            echo "🔍 Scanning K8s resources in cloudops-center namespace..."
-            trivy k8s --namespace cloudops-center --format json -o trivy-output-k8s.json || true
-
-            echo "✅ Trivy scans complete. Injecting frontend results into backend."
-            cp trivy-output-frontend.json trivy-output.json
+            trivy image --severity HIGH,CRITICAL --format json -o trivy-output.json $DOCKER_USER/cloudops-frontend:latest || true
           '''
         }
       }
     }
+
+    stage('Build & Push Backend') {
+      steps {
+        dir('backend') {
+          sh '''
+            echo "🛠️ Building backend..."
+            docker build -t $DOCKER_USER/cloudops-backend:latest .
+            echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
+            docker push $DOCKER_USER/cloudops-backend:latest
+          '''
+        }
+      }
+    }
+
     stage('Deploy to Kubernetes') {
       steps {
         withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
           dir('charts') {
             sh '''
-              echo "🚀 Deploying CloudOps Center using Helm..."
+              echo "🚀 Deploying DevOps Control Tower using Helm..."
               helm upgrade --install cloudops-center-helm . \
                 --namespace cloudops-center --create-namespace --wait
 
@@ -86,7 +79,7 @@ pipeline {
       cleanWs()
     }
     success {
-      echo '✅ CloudOps Center deployed successfully!'
+      echo '✅ DevOps Control Tower deployed successfully!'
     }
     failure {
       echo '❌ Deployment failed. Check logs for more info.'
