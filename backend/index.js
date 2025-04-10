@@ -163,7 +163,9 @@ app.post('/api/pods/:name/delete', async (req, res) => {
 // === Vulnerability Scan API (Trivy JSON endpoint) ===
 app.get('/api/vulnerabilities', async (req, res) => {
   try {
-    const scanResults = require('./trivy-output.json');
+    const raw = require('./trivy-output.json');
+    const scanResults = Array.isArray(raw) ? raw : [raw];
+
     const vulnerabilities = scanResults.flatMap(result =>
       result.Vulnerabilities?.map(v => ({
         Target: result.Target,
@@ -172,6 +174,7 @@ app.get('/api/vulnerabilities', async (req, res) => {
         Title: v.Title
       })) || []
     );
+
     res.json(vulnerabilities);
   } catch (err) {
     res.status(500).json({ error: err.message });
