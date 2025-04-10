@@ -43,7 +43,25 @@ pipeline {
         }
       }
     }
+    stage('Trivy Scan & Inject') {
+      steps {
+        dir('backend') {
+          sh '''
+            echo "🔍 Scanning frontend image..."
+            trivy image --severity HIGH,CRITICAL --format json -o trivy-output-frontend.json $DOCKER_USER/cloudops-frontend:latest || true
 
+            echo "🔍 Scanning backend image..."
+            trivy image --severity HIGH,CRITICAL --format json -o trivy-output-backend.json $DOCKER_USER/cloudops-backend:latest || true
+
+            echo "🔍 Scanning K8s resources in cloudops-center namespace..."
+            trivy k8s --namespace cloudops-center --format json -o trivy-output-k8s.json || true
+
+            echo "✅ Trivy scans complete. Injecting frontend results into backend."
+            cp trivy-output-frontend.json trivy-output.json
+          '''
+        }
+      }
+    }
     stage('Deploy to Kubernetes') {
       steps {
         withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {

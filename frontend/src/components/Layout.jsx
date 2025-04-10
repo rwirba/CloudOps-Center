@@ -50,6 +50,10 @@ const Layout = ({ children }) => {
             <ListItemIcon><BarChartIcon /></ListItemIcon>
             <ListItemText primary="GitHub" />
           </ListItem>
+          <ListItem button onClick={() => navigate('/pods')}>
+            <ListItemIcon><LayersIcon /></ListItemIcon>
+            <ListItemText primary="K8s Pods" />
+          </ListItem>
         </List>
       </Drawer>
       <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
