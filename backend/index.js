@@ -178,6 +178,6 @@ app.get('/api/vulnerabilities', async (req, res) => {
   }
 });
 
-app.listen(port, () => {
+app.listen(port, '0.0.0.0', () => {
   console.log(`DevOps Control Tower backend running on port ${port}`);
 });
