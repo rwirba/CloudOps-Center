@@ -164,7 +164,7 @@ app.post('/api/pods/:name/delete', async (req, res) => {
 app.get('/api/vulnerabilities', async (req, res) => {
   try {
     const raw = require('./trivy-output.json');
-    const scanResults = Array.isArray(raw) ? raw : [raw];
+    const scanResults = Array.isArray(raw) ? raw : (raw.Results || [raw]);
 
     const vulnerabilities = scanResults.flatMap(result =>
       result.Vulnerabilities?.map(v => ({
@@ -177,6 +177,7 @@ app.get('/api/vulnerabilities', async (req, res) => {
 
     res.json(vulnerabilities);
   } catch (err) {
+    console.error('Failed to load vulnerability data:', err.message);
     res.status(500).json({ error: err.message });
   }
 });
