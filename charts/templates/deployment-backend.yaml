@@ -1,16 +1,16 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: cloudops-backend
+  name: dct-backend
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: cloudops-backend
+      app: dct-backend
   template:
     metadata:
       labels:
-        app: cloudops-backend
+        app: dct-backend
     spec:
       imagePullSecrets:
         - name: dockerhub-auth
@@ -21,6 +21,6 @@ spec:
             - containerPort: {{ .Values.backend.servicePort }}
           envFrom:
             - configMapRef:
-                name: cloudops-config
+                name: dct-config
             - secretRef:
-                name: cloudops-secret
+                name: dct-secret

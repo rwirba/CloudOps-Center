@@ -9,7 +9,7 @@ function Login() {
 
   return (
     <div>
-      <h2>Login to CloudOps Center</h2>
+      <h2>Login to DevOps Control Tower</h2>
       <button onClick={handleLogin}>Login</button>
     </div>
   );

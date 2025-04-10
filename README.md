@@ -1,6 +1,6 @@
-# CloudOps Center
+# dct Center
 
-CloudOps Center is a web-based DevOps portal that allows you to manage and monitor AWS resources such as EC2 instances and IAM users. It provides a secure frontend/backend interface deployed in Kubernetes, configured via Helm charts, and exposed through Ingress with domain routing.
+dct Center is a web-based DevOps portal that allows you to manage and monitor AWS resources such as EC2 instances and IAM users. It provides a secure frontend/backend interface deployed in Kubernetes, configured via Helm charts, and exposed through Ingress with domain routing.
 
 ---
 
@@ -17,10 +17,10 @@ CloudOps Center is a web-based DevOps portal that allows you to manage and monit
 
 ## 🧱 Project Structure
 ```
-CloudOps-Center/
+dct/
 ├── backend/                  # Node.js Express API for AWS management
 ├── frontend/                 # React UI for dashboard
-├── charts/cloudops-center/  # Helm chart for Kubernetes deployment
+├── charts/dct/  # Helm chart for Kubernetes deployment
 └── README.md
 ```
 
@@ -31,7 +31,7 @@ CloudOps-Center/
 - Ingress controller installed (NGINX)
 - Helm 3 installed
 - Docker images pushed to Docker Hub (private or public)
-- Subdomain (e.g., `cloudops-center.kihhuf.org`) configured to point to Ingress IP
+- Subdomain (e.g., `dct.kihhuf.org`) configured to point to Ingress IP
 
 ---
 
@@ -39,23 +39,23 @@ CloudOps-Center/
 
 ### 1. Clone This Repo
 ```bash
-git clone https://github.com/<your-org>/CloudOps-Center.git
-cd CloudOps-Center
+git clone https://github.com/<your-org>/dct.git
+cd dct
 ```
 
 ### 2. Build and Push Docker Images
 ```bash
 # Backend
 cd backend
-docker build -t <your-dockerhub>/cloudops-backend:latest .
-docker push <your-dockerhub>/cloudops-backend:latest
+docker build -t <your-dockerhub>/dct-backend:latest .
+docker push <your-dockerhub>/dct-backend:latest
 
 # Frontend
 cd ../frontend
 npm install
 npm run build
-docker build -t <your-dockerhub>/cloudops-frontend:latest .
-docker push <your-dockerhub>/cloudops-frontend:latest
+docker build -t <your-dockerhub>/dct-frontend:latest .
+docker push <your-dockerhub>/dct-frontend:latest
 ```
 
 ### 3. Install NGINX Ingress Controller (if not already)
@@ -67,14 +67,14 @@ helm install ingress-nginx ingress-nginx/ingress-nginx \
 
 ### 4. Create AWS Credentials Secret
 ```bash
-kubectl -n cloudops-center create secret generic cloudops-secret \
+kubectl -n dct create secret generic dct-secret \
   --from-literal=AWS_ACCESS_KEY_ID=<your-access-key> \
   --from-literal=AWS_SECRET_ACCESS_KEY=<your-secret-key>
 ```
 
 ### 5. Create DockerHub Pull Secret (for private repos)
 ```bash
-kubectl -n cloudops-center create secret docker-registry dockerhub-auth \
+kubectl -n dct create secret docker-registry dockerhub-auth \
   --docker-server=https://index.docker.io/v1/ \
   --docker-username=<your-dockerhub-username> \
   --docker-password='<your-password>' \
@@ -83,8 +83,8 @@ kubectl -n cloudops-center create secret docker-registry dockerhub-auth \
 
 ### 6. Deploy with Helm
 ```bash
-helm upgrade --install cloudops-center charts/cloudops-center \
-  --namespace cloudops-center --create-namespace
+helm upgrade --install dct charts/dct \
+  --namespace dct --create-namespace
 ```
 
 ---
@@ -92,13 +92,13 @@ helm upgrade --install cloudops-center charts/cloudops-center \
 ## 🌐 DNS Setup
 
 1. In GoDaddy (or your DNS provider), add an A record:
-   - **Name**: `cloudops-center`
+   - **Name**: `dct`
    - **Type**: `A`
    - **Value**: <Ingress Controller Public IP>
 
 2. Wait for DNS propagation and access the app:
 ```
-http://cloudops-center.kihhuf.org
+http://dct.kihhuf.org
 ```
 
 ---

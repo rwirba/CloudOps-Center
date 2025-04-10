@@ -1,16 +1,16 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: cloudops-frontend
+  name: dct-frontend
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: cloudops-frontend
+      app: dct-frontend
   template:
     metadata:
       labels:
-        app: cloudops-frontend
+        app: dct-frontend
     spec:
       imagePullSecrets:
         - name: dockerhub-auth

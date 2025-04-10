@@ -1,12 +1,19 @@
-{{- if .Values.ingress.enabled -}}
+{{- if .Values.ingress.enabled }}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: cloudops-ingress
+  name: dct-ingress
   annotations:
     nginx.ingress.kubernetes.io/rewrite-target: /$1
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    cert-manager.io/cluster-issuer: letsencrypt-prod
 spec:
   ingressClassName: nginx
+  tls:
+    - hosts:
+        - {{ .Values.ingress.host }}
+      secretName: dct-tls
   rules:
     - host: {{ .Values.ingress.host }}
       http:
@@ -15,14 +22,14 @@ spec:
             pathType: ImplementationSpecific
             backend:
               service:
-                name: cloudops-backend
+                name: dct-backend
                 port:
                   number: {{ .Values.backend.servicePort }}
           - path: /(.*)
             pathType: ImplementationSpecific
             backend:
               service:
-                name: cloudops-frontend
+                name: dct-frontend
                 port:
                   number: {{ .Values.frontend.servicePort }}
 {{- end }}

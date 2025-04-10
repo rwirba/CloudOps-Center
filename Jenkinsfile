@@ -10,23 +10,40 @@ pipeline {
   stages {
     stage('Checkout') {
       steps {
-        git 'https://github.com/rwirba/CloudOps-Center.git'
+        git 'https://github.com/rwirba/devOps-control-tower.git'
       }
     }
 
-    stage('Build & Push Frontend') {
-      steps {
-        dir('frontend') {
-          sh '''
-            echo "🛠️ Installing frontend dependencies and building React app..."
-            npm install
-            npm run build
+    stage('Build & Push Images') {
+      parallel {
+        stage('Frontend') {
+          steps {
+            dir('frontend') {
+              sh '''
+                echo "🛠️ Installing frontend dependencies and building React app..."
+                npm install
+                npm run build
 
-            echo "📦 Building Docker image for frontend..."
-            docker build -t $DOCKER_USER/cloudops-frontend:latest .
-            echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
-            docker push $DOCKER_USER/cloudops-frontend:latest
-          '''
+                echo "📦 Building Docker image for frontend..."
+                docker build -t $DOCKER_USER/dct-frontend:latest .
+                echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
+                docker push $DOCKER_USER/dct-frontend:latest
+              '''
+            }
+          }
+        }
+
+        stage('Backend') {
+          steps {
+            dir('backend') {
+              sh '''
+                echo "🛠️ Building backend..."
+                docker build -t $DOCKER_USER/dct-backend:latest .
+                echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
+                docker push $DOCKER_USER/dct-backend:latest
+              '''
+            }
+          }
         }
       }
     }
@@ -36,20 +53,7 @@ pipeline {
         dir('backend') {
           sh '''
             echo "🔍 Scanning frontend image..."
-            trivy image --severity HIGH,CRITICAL --format json -o trivy-output.json $DOCKER_USER/cloudops-frontend:latest || true
-          '''
-        }
-      }
-    }
-
-    stage('Build & Push Backend') {
-      steps {
-        dir('backend') {
-          sh '''
-            echo "🛠️ Building backend..."
-            docker build -t $DOCKER_USER/cloudops-backend:latest .
-            echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
-            docker push $DOCKER_USER/cloudops-backend:latest
+            trivy image --severity HIGH,CRITICAL --format json -o trivy-output.json $DOCKER_USER/dct-frontend:latest || true
           '''
         }
       }
@@ -61,12 +65,12 @@ pipeline {
           dir('charts') {
             sh '''
               echo "🚀 Deploying DevOps Control Tower using Helm..."
-              helm upgrade --install cloudops-center-helm . \
-                --namespace cloudops-center --create-namespace --wait
+              helm upgrade --install dct-helm . \
+                --namespace dct --create-namespace --wait
 
-              echo "🔁 Restarting deployment to pull latest image..."
-              kubectl rollout restart deployment cloudops-backend -n cloudops-center
-              kubectl rollout restart deployment cloudops-frontend -n cloudops-center  
+              echo "🔁 Restarting deployments to pull latest images..."
+              kubectl rollout restart deployment dct-backend -n dct
+              kubectl rollout restart deployment dct-frontend -n dct
             '''
           }
         }

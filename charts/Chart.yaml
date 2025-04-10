@@ -1,4 +1,4 @@
 apiVersion: v2
-name: cloudops-center
-description: Helm chart for CloudOps Center
+name: dct
+description: Helm chart for DevOps Control Tower
 version: 0.1.0
