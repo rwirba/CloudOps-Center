@@ -1,54 +1,19 @@
-{{- if .Values.ingress.enabled }}
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: dct-ingress
+frontend:
+  image: mitechllc/dct-frontend:latest
+  servicePort: 80
+
+backend:
+  image: mitechllc/dct-backend:latest
+  servicePort: 4000
+
+ingress:
+  enabled: true
+  host: dct.kihhuf.org
+  tls:
+    enabled: true
+    secretName: dct-tls
   annotations:
     nginx.ingress.kubernetes.io/use-regex: "true"
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
     nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
     cert-manager.io/cluster-issuer: letsencrypt-prod
-spec:
-  ingressClassName: nginx
-  tls:
-    - hosts:
-        - {{ .Values.ingress.host }}
-      secretName: {{ .Values.ingress.tls.secretName }}
-  rules:
-    - host: {{ .Values.ingress.host }}
-      http:
-        paths:
-          # 🔐 Let's Encrypt HTTP-01 challenge
-          - path: /.well-known/acme-challenge(/|$)(.*)
-            pathType: ImplementationSpecific
-            backend:
-              service:
-                name: dct-frontend
-                port:
-                  number: {{ .Values.frontend.servicePort }}
-
-          # ✅ API rewrite with regex
-          - path: /api(/|$)(.*)
-            pathType: ImplementationSpecific
-            backend:
-              service:
-                name: dct-backend
-                port:
-                  number: {{ .Values.backend.servicePort }}
-          # ✅ Static files (no rewrite)
-          - path: /static(/|$)(.*)
-            pathType: ImplementationSpecific
-            backend:
-              service:
-                name: dct-frontend
-                port:
-                  number: {{ .Values.frontend.servicePort }}
-          # ✅ Catch-all to frontend (no rewrite)
-          - path: /(.*)
-            pathType: ImplementationSpecific
-            backend:
-              service:
-                name: dct-frontend
-                port:
-                  number: {{ .Values.frontend.servicePort }}
-{{- end }}
