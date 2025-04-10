@@ -20,3 +20,8 @@ spec:
           imagePullPolicy: Always
           ports:
             - containerPort: {{ .Values.frontend.servicePort }}
+          env:
+            - name: REACT_APP_ENV
+              value: "production"
+            - name: NODE_ENV
+              value: "production"
