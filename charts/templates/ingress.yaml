@@ -7,6 +7,7 @@ metadata:
     nginx.ingress.kubernetes.io/rewrite-target: /$2
     nginx.ingress.kubernetes.io/use-regex: "true"
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
     cert-manager.io/cluster-issuer: letsencrypt-prod
 spec:
   ingressClassName: nginx
@@ -18,6 +19,16 @@ spec:
     - host: {{ .Values.ingress.host }}
       http:
         paths:
+          # Let's Encrypt HTTP-01 challenge path
+          - path: /.well-known/acme-challenge(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: dct-frontend
+                port:
+                  number: {{ .Values.frontend.servicePort }}
+
+          # API routes → backend service
           - path: /api(/|$)(.*)
             pathType: ImplementationSpecific
             backend:
@@ -25,6 +36,8 @@ spec:
                 name: dct-backend
                 port:
                   number: {{ .Values.backend.servicePort }}
+
+          #  All other paths → frontend service
           - path: /(.*)
             pathType: ImplementationSpecific
             backend:
