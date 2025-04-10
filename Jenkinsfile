@@ -14,36 +14,19 @@ pipeline {
       }
     }
 
-    stage('Build & Push Images') {
-      parallel {
-        stage('Frontend') {
-          steps {
-            dir('frontend') {
-              sh '''
-                echo "🛠️ Installing frontend dependencies and building React app..."
-                npm install
-                npm run build
+    stage('Build & Push Frontend') {
+      steps {
+        dir('frontend') {
+          sh '''
+            echo "🛠️ Installing frontend dependencies and building React app..."
+            npm install
+            npm run build
 
-                echo "📦 Building Docker image for frontend..."
-                docker build -t $DOCKER_USER/dct-frontend:latest .
-                echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
-                docker push $DOCKER_USER/dct-frontend:latest
-              '''
-            }
-          }
-        }
-
-        stage('Backend') {
-          steps {
-            dir('backend') {
-              sh '''
-                echo "🛠️ Building backend..."
-                docker build -t $DOCKER_USER/dct-backend:latest .
-                echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
-                docker push $DOCKER_USER/dct-backend:latest
-              '''
-            }
-          }
+            echo "📦 Building Docker image for frontend..."
+            docker build -t $DOCKER_USER/dct-frontend:latest .
+            echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
+            docker push $DOCKER_USER/dct-frontend:latest
+          '''
         }
       }
     }
@@ -52,8 +35,22 @@ pipeline {
       steps {
         dir('backend') {
           sh '''
-            echo "🔍 Scanning frontend image..."
+            echo "🔍 Scanning frontend image with Trivy..."
             trivy image --severity HIGH,CRITICAL --format json -o trivy-output.json $DOCKER_USER/dct-frontend:latest || true
+            ls -l trivy-output.json
+          '''
+        }
+      }
+    }
+
+    stage('Build & Push Backend') {
+      steps {
+        dir('backend') {
+          sh '''
+            echo "🛠️ Building backend Docker image (with Trivy output)..."
+            docker build -t $DOCKER_USER/dct-backend:latest .
+            echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
+            docker push $DOCKER_USER/dct-backend:latest
           '''
         }
       }
