@@ -64,7 +64,8 @@ pipeline {
               helm upgrade --install cloudops-center-helm . \
                 --namespace cloudops-center --create-namespace --wait
 
-              echo "🔁 Restarting frontend deployment to pull latest image..."
+              echo "🔁 Restarting deployment to pull latest image..."
+              kubectl rollout restart deployment cloudops-backend -n cloudops-center
               kubectl rollout restart deployment cloudops-frontend -n cloudops-center  
             '''
           }
