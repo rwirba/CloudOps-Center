@@ -5,6 +5,7 @@ import StorageIcon from '@mui/icons-material/Storage';
 import LockIcon from '@mui/icons-material/Lock';
 import BarChartIcon from '@mui/icons-material/BarChart';
 import { useNavigate } from 'react-router-dom';
+import LayersIcon from '@mui/icons-material/Layers';
 
 const drawerWidth = 240;
 
