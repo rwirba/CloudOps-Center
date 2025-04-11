@@ -183,6 +183,7 @@ app.get('/api/vulnerabilities', async (req, res) => {
 });
 
 const s3 = new AWS.S3();
+
 app.get('/api/s3-buckets', async (req, res) => {
   try {
     const data = await s3.listBuckets().promise();

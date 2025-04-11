@@ -1,16 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from '@mui/material';
-import axios from 'axios';
 
-function S3Buckets() {
-  const [buckets, setBuckets] = useState([]);
-
-  useEffect(() => {
-    axios.get('/api/s3-buckets')
-      .then(res => setBuckets(res.data))
-      .catch(() => setBuckets([]));
-  }, []);
-
+function S3Table({ buckets }) {
   return (
     <TableContainer component={Paper} sx={{ mt: 2 }}>
       <Table>
@@ -21,10 +12,10 @@ function S3Buckets() {
           </TableRow>
         </TableHead>
         <TableBody>
-          {buckets.map((b, i) => (
-            <TableRow key={i}>
-              <TableCell>{b.Name}</TableCell>
-              <TableCell>{new Date(b.CreationDate).toLocaleString()}</TableCell>
+          {buckets.map((bucket, index) => (
+            <TableRow key={index}>
+              <TableCell>{bucket.Name}</TableCell>
+              <TableCell>{new Date(bucket.CreationDate).toLocaleString()}</TableCell>
             </TableRow>
           ))}
         </TableBody>
@@ -33,4 +24,4 @@ function S3Buckets() {
   );
 }
 
-export default S3Buckets;
+export default S3Table;
