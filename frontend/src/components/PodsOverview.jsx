@@ -1,75 +1,64 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { Table, TableBody, TableCell, TableHead, TableRow, TableContainer, Paper, Button, Dialog, DialogTitle, DialogContent, Typography } from '@mui/material';
+import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, Typography, Chip } from '@mui/material';
 
 function PodsOverview() {
   const [pods, setPods] = useState([]);
-  const [selectedLog, setSelectedLog] = useState('');
-  const [logOpen, setLogOpen] = useState(false);
-
-  const fetchPods = () => {
-    axios.get('/api/pods').then(res => setPods(res.data));
-  };
+  const [selectedPod, setSelectedPod] = useState(null);
+  const [logs, setLogs] = useState('');
 
   useEffect(() => {
-    fetchPods();
-    const interval = setInterval(fetchPods, 30000);
-    return () => clearInterval(interval);
+    axios.get('/api/pods').then(res => setPods(res.data));
   }, []);
 
-  const handleRestart = (name) => {
-    axios.post(`/api/pods/${name}/restart`).then(fetchPods);
+  const getStatusColor = (phase) => {
+    if (phase === 'Running') return 'success';
+    if (phase === 'Failed') return 'error';
+    return 'warning';
   };
 
-  const handleDelete = (name) => {
-    axios.post(`/api/pods/${name}/delete`).then(fetchPods);
-  };
-
-  const handleLogs = (name) => {
-    axios.get(`/api/pods/${name}/logs`).then(res => {
-      setSelectedLog(res.data);
-      setLogOpen(true);
-    });
+  const fetchLogs = (podName, namespace = 'dct') => {
+    axios.get(`/api/pods/${podName}/logs?namespace=${namespace}`)
+      .then(res => {
+        setSelectedPod(podName);
+        setLogs(res.data);
+      });
   };
 
   return (
-    <TableContainer component={Paper}>
-      <Table>
-        <TableHead>
-          <TableRow>
-            <TableCell>Name</TableCell>
-            <TableCell>Namespace</TableCell>
-            <TableCell>Status</TableCell>
-            <TableCell>Restarts</TableCell>
-            <TableCell>Node</TableCell>
-            <TableCell>Actions</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {pods.map(pod => (
-            <TableRow key={pod.metadata.name}>
-              <TableCell>{pod.metadata.name}</TableCell>
-              <TableCell>{pod.metadata.namespace}</TableCell>
-              <TableCell>{pod.status.phase}</TableCell>
-              <TableCell>{pod.status.containerStatuses?.[0]?.restartCount || 0}</TableCell>
-              <TableCell>{pod.spec.nodeName}</TableCell>
-              <TableCell>
-                <Button onClick={() => handleLogs(pod.metadata.name)}>Logs</Button>
-                <Button onClick={() => handleRestart(pod.metadata.name)}>Restart</Button>
-                <Button onClick={() => handleDelete(pod.metadata.name)}>Delete</Button>
-              </TableCell>
+    <>
+      <TableContainer component={Paper} sx={{ mt: 2 }}>
+        <Table size="small">
+          <TableHead>
+            <TableRow>
+              <TableCell>Name</TableCell>
+              <TableCell>Status</TableCell>
+              <TableCell>Namespace</TableCell>
+              <TableCell>Actions</TableCell>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+          </TableHead>
+          <TableBody>
+            {pods.map((pod, i) => (
+              <TableRow key={i}>
+                <TableCell>{pod.metadata.name}</TableCell>
+                <TableCell><Chip label={pod.status.phase} color={getStatusColor(pod.status.phase)} size="small" /></TableCell>
+                <TableCell>{pod.metadata.namespace}</TableCell>
+                <TableCell>
+                  <Button size="small" onClick={() => fetchLogs(pod.metadata.name, pod.metadata.namespace)}>View Logs</Button>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
 
-      <Dialog open={logOpen} onClose={() => setLogOpen(false)} maxWidth="md" fullWidth>
-        <DialogTitle>Pod Logs</DialogTitle>
-        <DialogContent>
-          <Typography component="pre" sx={{ whiteSpace: 'pre-wrap' }}>{selectedLog}</Typography>
-        </DialogContent>
-      </Dialog>
-    </TableContainer>
+      {selectedPod && (
+        <Paper sx={{ mt: 2, p: 2 }}>
+          <Typography variant="h6">Logs for {selectedPod}</Typography>
+          <pre style={{ whiteSpace: 'pre-wrap', background: '#111', color: '#0f0', padding: '10px', height: '200px', overflow: 'auto' }}>{logs}</pre>
+        </Paper>
+      )}
+    </>
   );
 }
 

@@ -1,45 +1,44 @@
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
-import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button } from '@mui/material';
+import React from 'react';
+import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Chip } from '@mui/material';
 
 function IAMUsers({ users, onRotateKey }) {
-  const [keys, setKeys] = useState({});
+  const getKeyColor = (days) => {
+    if (days <= 30) return 'success';
+    if (days <= 60) return 'warning';
+    return 'error';
+  };
 
-  useEffect(() => {
-    users.forEach(user => {
-      axios.get(`/api/iam-access-keys/${user.UserName}`).then(res => {
-        setKeys(prev => ({ ...prev, [user.UserName]: res.data.AccessKeyMetadata }));
-      });
-    });
-  }, [users]);
+  const calcAge = (dateString) => {
+    const created = new Date(dateString);
+    const now = new Date();
+    return Math.floor((now - created) / (1000 * 60 * 60 * 24));
+  };
 
   return (
-    <TableContainer component={Paper}>
-      <Table>
+    <TableContainer component={Paper} sx={{ mt: 2 }}>
+      <Table size="small">
         <TableHead>
           <TableRow>
-            <TableCell>User</TableCell>
-            <TableCell>Access Key ID</TableCell>
-            <TableCell>Status</TableCell>
-            <TableCell>Created</TableCell>
+            <TableCell>User Name</TableCell>
+            <TableCell>Key Age</TableCell>
+            <TableCell>Key Status</TableCell>
             <TableCell>Actions</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
-          {users.map(user => (
-            keys[user.UserName]?.map((key, i) => (
-              <TableRow key={key.AccessKeyId}>
+          {users.map((user, i) => (
+            user.AccessKeys?.map((key, idx) => (
+              <TableRow key={`${i}-${idx}`}>
                 <TableCell>{user.UserName}</TableCell>
-                <TableCell>{key.AccessKeyId}</TableCell>
-                <TableCell>{key.Status}</TableCell>
-                <TableCell>{new Date(key.CreateDate).toLocaleDateString()}</TableCell>
                 <TableCell>
-                  <Button onClick={() => onRotateKey(user.UserName)}>Rotate</Button>
-                  <Button onClick={() => axios.post('/api/disable-access-key', { userName: user.UserName, accessKeyId: key.AccessKeyId })}>Disable</Button>
-                  <Button onClick={() => axios.post('/api/delete-access-key', { userName: user.UserName, accessKeyId: key.AccessKeyId })}>Delete</Button>
+                  <Chip label={`${calcAge(key.CreateDate)} days`} color={getKeyColor(calcAge(key.CreateDate))} size="small" />
+                </TableCell>
+                <TableCell>{key.Status}</TableCell>
+                <TableCell>
+                  <button onClick={() => onRotateKey(user.UserName)}>Rotate Key</button>
                 </TableCell>
               </TableRow>
-            ))
+            )) || null
           ))}
         </TableBody>
       </Table>

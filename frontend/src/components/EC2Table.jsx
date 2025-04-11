@@ -1,11 +1,19 @@
 import React from 'react';
-import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Button, Paper } from '@mui/material';
+import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Button, Paper, Chip } from '@mui/material';
 import CloudWatchChart from './CloudWatchChart';
 
 function EC2Table({ instances, onAction }) {
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'running': return 'success';
+      case 'stopped': return 'error';
+      default: return 'warning';
+    }
+  };
+
   return (
     <TableContainer component={Paper} sx={{ mt: 2 }}>
-      <Table>
+      <Table size="small">
         <TableHead>
           <TableRow>
             <TableCell>Name</TableCell>
@@ -23,12 +31,14 @@ function EC2Table({ instances, onAction }) {
               <TableCell>{instance.Tags?.find(t => t.Key === 'Name')?.Value || 'N/A'}</TableCell>
               <TableCell>{instance.InstanceId}</TableCell>
               <TableCell>{instance.InstanceType}</TableCell>
-              <TableCell>{instance.State?.Name}</TableCell>
+              <TableCell>
+                <Chip label={instance.State?.Name} color={getStatusColor(instance.State?.Name)} size="small" />
+              </TableCell>
               <TableCell>{instance.PublicIpAddress || 'N/A'}</TableCell>
               <TableCell>
-                <Button size="small" onClick={() => onAction('start', instance.InstanceId)}>Start</Button>
-                <Button size="small" onClick={() => onAction('stop', instance.InstanceId)}>Stop</Button>
-                <Button size="small" onClick={() => onAction('terminate', instance.InstanceId)}>Terminate</Button>
+                <Button size="small" color="success" onClick={() => onAction('start', instance.InstanceId)}>Start</Button>
+                <Button size="small" color="warning" onClick={() => onAction('stop', instance.InstanceId)}>Stop</Button>
+                <Button size="small" color="error" onClick={() => onAction('terminate', instance.InstanceId)}>Terminate</Button>
               </TableCell>
               <TableCell>
                 <CloudWatchChart instanceId={instance.InstanceId} />
