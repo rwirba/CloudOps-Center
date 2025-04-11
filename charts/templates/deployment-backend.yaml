@@ -12,6 +12,7 @@ spec:
       labels:
         app: dct-backend
     spec:
+      serviceAccountName: dct-backend-sa 
       imagePullSecrets:
         - name: dockerhub-auth
       containers:
