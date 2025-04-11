@@ -4,10 +4,9 @@ kind: Ingress
 metadata:
   name: dct-ingress
   annotations:
-    nginx.ingress.kubernetes.io/use-regex: "true"
-    nginx.ingress.kubernetes.io/ssl-redirect: "true"
-    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
-    cert-manager.io/cluster-issuer: {{ .Values.ingress.annotations.cert-manager.io/cluster-issuer }}
+{{- range $key, $val := .Values.ingress.annotations }}
+    {{ $key }}: {{ $val | quote }}
+{{- end }}
 spec:
   ingressClassName: nginx
   tls:
@@ -18,7 +17,7 @@ spec:
     - host: {{ .Values.ingress.host }}
       http:
         paths:
-          # ✅ Static files like /static/js/main.js
+          # 🔹 Serve static frontend assets
           - path: /static(/|$)(.*)
             pathType: ImplementationSpecific
             backend:
@@ -27,7 +26,7 @@ spec:
                 port:
                   number: {{ .Values.frontend.servicePort }}
 
-          # ✅ API rewrite /api → backend with path stripping
+          # 🔹 Proxy API requests to backend (with path rewrite)
           - path: /api(/|$)(.*)
             pathType: ImplementationSpecific
             backend:
@@ -35,9 +34,8 @@ spec:
                 name: dct-backend
                 port:
                   number: {{ .Values.backend.servicePort }}
-            # Annotation used here: rewrite-target: /$2
 
-          # ✅ Catch-all route for React (index.html)
+          # 🔹 Catch-all for React (SPA)
           - path: /(.*)
             pathType: ImplementationSpecific
             backend:
