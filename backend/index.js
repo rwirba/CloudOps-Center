@@ -16,8 +16,9 @@ AWS.config.update({ region: 'us-east-1' });
 const ec2 = new AWS.EC2();
 const cloudwatch = new AWS.CloudWatch();
 const iam = new AWS.IAM();
+const s3 = new AWS.S3();
 
-// === AWS EC2 APIs ===
+// === EC2 Instances ===
 app.get('/api/instances', async (req, res) => {
   try {
     const data = await ec2.describeInstances().promise();
@@ -27,10 +28,10 @@ app.get('/api/instances', async (req, res) => {
   }
 });
 
-app.post('/api/terminate', async (req, res) => {
+app.post('/api/start', async (req, res) => {
   const { instanceId } = req.body;
   try {
-    const data = await ec2.terminateInstances({ InstanceIds: [instanceId] }).promise();
+    const data = await ec2.startInstances({ InstanceIds: [instanceId] }).promise();
     res.json(data);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -47,10 +48,10 @@ app.post('/api/stop', async (req, res) => {
   }
 });
 
-app.post('/api/start', async (req, res) => {
+app.post('/api/terminate', async (req, res) => {
   const { instanceId } = req.body;
   try {
-    const data = await ec2.startInstances({ InstanceIds: [instanceId] }).promise();
+    const data = await ec2.terminateInstances({ InstanceIds: [instanceId] }).promise();
     res.json(data);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -76,7 +77,7 @@ app.get('/api/metrics/:instanceId', async (req, res) => {
   }
 });
 
-// === AWS IAM APIs ===
+// === IAM Users & Access Keys ===
 app.get('/api/iam-users', async (req, res) => {
   try {
     const data = await iam.listUsers().promise();
@@ -99,8 +100,8 @@ app.get('/api/iam-access-keys/:userName', async (req, res) => {
 app.post('/api/rotate-access-key', async (req, res) => {
   const { userName } = req.body;
   try {
-    const newKey = await iam.createAccessKey({ UserName: userName }).promise();
-    res.json(newKey);
+    const data = await iam.createAccessKey({ UserName: userName }).promise();
+    res.json(data);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -130,20 +131,22 @@ app.post('/api/disable-access-key', async (req, res) => {
   }
 });
 
-// === Kubernetes APIs ===
+// === Kubernetes Pods (all namespaces) ===
 app.get('/api/pods', async (req, res) => {
   try {
-    const result = await coreV1Api.listNamespacedPod('dct');
+    const result = await coreV1Api.listPodForAllNamespaces(); // changed from listNamespacedPod
     res.json(result.body.items);
   } catch (err) {
+    console.error('❌ Failed to fetch pods:', err.message);
     res.status(500).json({ error: err.message });
   }
 });
 
 app.post('/api/pods/:name/restart', async (req, res) => {
   const name = req.params.name;
+  const namespace = req.body.namespace || 'default';
   try {
-    await coreV1Api.deleteNamespacedPod(name, 'dct');
+    await coreV1Api.deleteNamespacedPod(name, namespace);
     res.json({ message: `Restarted pod ${name}` });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -152,15 +155,16 @@ app.post('/api/pods/:name/restart', async (req, res) => {
 
 app.post('/api/pods/:name/delete', async (req, res) => {
   const name = req.params.name;
+  const namespace = req.body.namespace || 'default';
   try {
-    await coreV1Api.deleteNamespacedPod(name, 'dct');
+    await coreV1Api.deleteNamespacedPod(name, namespace);
     res.json({ message: `Deleted pod ${name}` });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// === Vulnerability Scan API (Trivy JSON endpoint) ===
+// === Trivy Vulnerabilities ===
 app.get('/api/vulnerabilities', async (req, res) => {
   try {
     const raw = require('./trivy-output.json');
@@ -182,8 +186,7 @@ app.get('/api/vulnerabilities', async (req, res) => {
   }
 });
 
-const s3 = new AWS.S3();
-
+// === S3 Buckets ===
 app.get('/api/s3-buckets', async (req, res) => {
   try {
     const data = await s3.listBuckets().promise();
