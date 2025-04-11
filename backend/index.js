@@ -133,7 +133,7 @@ app.post('/api/disable-access-key', async (req, res) => {
 // === Kubernetes APIs ===
 app.get('/api/pods', async (req, res) => {
   try {
-    const result = await coreV1Api.listNamespacedPod('default');
+    const result = await coreV1Api.listNamespacedPod('dct');
     res.json(result.body.items);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -143,7 +143,7 @@ app.get('/api/pods', async (req, res) => {
 app.post('/api/pods/:name/restart', async (req, res) => {
   const name = req.params.name;
   try {
-    await coreV1Api.deleteNamespacedPod(name, 'default');
+    await coreV1Api.deleteNamespacedPod(name, 'dct');
     res.json({ message: `Restarted pod ${name}` });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -153,7 +153,7 @@ app.post('/api/pods/:name/restart', async (req, res) => {
 app.post('/api/pods/:name/delete', async (req, res) => {
   const name = req.params.name;
   try {
-    await coreV1Api.deleteNamespacedPod(name, 'default');
+    await coreV1Api.deleteNamespacedPod(name, 'dct');
     res.json({ message: `Deleted pod ${name}` });
   } catch (err) {
     res.status(500).json({ error: err.message });
