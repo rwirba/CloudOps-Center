@@ -131,10 +131,10 @@ app.post('/api/disable-access-key', async (req, res) => {
   }
 });
 
-// === Kubernetes Pods (all namespaces) ===
+// === Kubernetes Pods (dct namespaces) ===
 app.get('/api/pods', async (req, res) => {
   try {
-    const result = await coreV1Api.listPodForAllNamespaces(); // changed from listNamespacedPod
+    const result = await coreV1Api.listNamespacePod('dct'); // just dct Namespace
     res.json(result.body.items);
   } catch (err) {
     console.error('❌ Failed to fetch pods:', err.message);
@@ -144,7 +144,7 @@ app.get('/api/pods', async (req, res) => {
 
 app.post('/api/pods/:name/restart', async (req, res) => {
   const name = req.params.name;
-  const namespace = req.body.namespace || 'default';
+  const namespace = req.body.namespace || 'dct';
   try {
     await coreV1Api.deleteNamespacedPod(name, namespace);
     res.json({ message: `Restarted pod ${name}` });
@@ -155,7 +155,7 @@ app.post('/api/pods/:name/restart', async (req, res) => {
 
 app.post('/api/pods/:name/delete', async (req, res) => {
   const name = req.params.name;
-  const namespace = req.body.namespace || 'default';
+  const namespace = req.body.namespace || 'dct';
   try {
     await coreV1Api.deleteNamespacedPod(name, namespace);
     res.json({ message: `Deleted pod ${name}` });
