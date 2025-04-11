@@ -4,22 +4,22 @@ kind: Ingress
 metadata:
   name: dct-ingress
   annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /$2
     nginx.ingress.kubernetes.io/use-regex: "true"
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
-    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    cert-manager.io/cluster-issuer: {{ .Values.ingress.annotations.cert-manager.io/cluster-issuer }}
 spec:
   ingressClassName: nginx
   tls:
     - hosts:
         - {{ .Values.ingress.host }}
-      secretName: dct-tls
+      secretName: {{ .Values.ingress.tls.secretName }}
   rules:
     - host: {{ .Values.ingress.host }}
       http:
         paths:
-          # Let's Encrypt HTTP-01 challenge path
-          - path: /.well-known/acme-challenge(/|$)(.*)
+          # ✅ Static files like /static/js/main.js
+          - path: /static(/|$)(.*)
             pathType: ImplementationSpecific
             backend:
               service:
@@ -27,7 +27,7 @@ spec:
                 port:
                   number: {{ .Values.frontend.servicePort }}
 
-          # API routes → backend service
+          # ✅ API rewrite /api → backend with path stripping
           - path: /api(/|$)(.*)
             pathType: ImplementationSpecific
             backend:
@@ -35,8 +35,9 @@ spec:
                 name: dct-backend
                 port:
                   number: {{ .Values.backend.servicePort }}
+            # Annotation used here: rewrite-target: /$2
 
-          #  All other paths → frontend service
+          # ✅ Catch-all route for React (index.html)
           - path: /(.*)
             pathType: ImplementationSpecific
             backend:
