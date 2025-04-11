@@ -134,7 +134,7 @@ app.post('/api/disable-access-key', async (req, res) => {
 // === Kubernetes Pods (dct namespaces) ===
 app.get('/api/pods', async (req, res) => {
   try {
-    const result = await coreV1Api.listNamespacePod('dct'); // just dct Namespace
+    const result = await coreV1Api.listNamespacedPod('dct'); // just dct Namespace
     res.json(result.body.items);
   } catch (err) {
     console.error('❌ Failed to fetch pods:', err.message);
