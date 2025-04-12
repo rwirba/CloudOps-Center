@@ -53,7 +53,7 @@ const Layout = ({ children }) => {
           </ListItem>
           <ListItem button onClick={() => navigate('/pods')}>
             <ListItemIcon><LayersIcon /></ListItemIcon>
-            <ListItemText primary="K8s Pods" />
+            <ListItemText primary="K8s Monitoring" />
           </ListItem>
         </List>
       </Drawer>
