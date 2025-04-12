@@ -18,12 +18,7 @@ pipeline {
       steps {
         dir('frontend') {
           sh '''
-            echo "🛠️ Installing frontend dependencies and building React app..."
-            npm install
-            npm run build
-
-            echo "📦 Building Docker image for frontend..."
-            docker build -t $DOCKER_USER/dct-frontend:latest .
+            docker build --no-cache -t $DOCKER_USER/dct-frontend:latest .
             echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
             docker push $DOCKER_USER/dct-frontend:latest
           '''
@@ -47,8 +42,7 @@ pipeline {
       steps {
         dir('backend') {
           sh '''
-            echo "🛠️ Building backend Docker image (with Trivy output)..."
-            docker build -t $DOCKER_USER/dct-backend:latest .
+            docker build --no-cache -t $DOCKER_USER/dct-backend:latest .
             echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
             docker push $DOCKER_USER/dct-backend:latest
           '''
@@ -61,11 +55,9 @@ pipeline {
         withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
           dir('charts') {
             sh '''
-              echo "🚀 Deploying DevOps Control Tower using Helm..."
               helm upgrade --install dct-helm . \
                 --namespace dct --create-namespace --wait
 
-              echo "🔁 Restarting deployments to pull latest images..."
               kubectl rollout restart deployment dct-backend -n dct
               kubectl rollout restart deployment dct-frontend -n dct
             '''
