@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import Layout from './components/Layout';
+import K8sMonitoring from './components/K8sMonitoring';
 import Dashboard from './components/Dashboard';
 import DashboardOverview from './pages/DashboardOverview';
 import GitHubRepos from './components/GitHubRepos';
@@ -52,6 +53,7 @@ function App() {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/resources" element={<AWSResources instances={instances} users={users} onInstanceAction={handleInstanceAction} onRotateKey={handleRotateKey} />} />
             <Route path="/repos" element={<GitHubRepos username="rwirba" />} />
+            <Route path="/pods" element={<K8sMonitoring />} />
             <Route path="/scan" element={<TrivyScan />} />
             <Route path="/pods" element={<PodsOverview />} />
           </Routes>
