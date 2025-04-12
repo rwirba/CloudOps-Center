@@ -61,6 +61,32 @@ app.get('/api/iam-users', async (req, res) => {
   }
 });
 
+// === IAM Key Rotation Fix ===
+app.post('/api/rotate-access-key', async (req, res) => {
+  const { userName } = req.body;
+  try {
+    // Create a new access key
+    const newKey = await iam.createAccessKey({ UserName: userName }).promise();
+
+    // Disable old keys if needed
+    const keys = await iam.listAccessKeys({ UserName: userName }).promise();
+    const activeKeys = keys.AccessKeyMetadata.filter(k => k.AccessKeyId !== newKey.AccessKey.AccessKeyId);
+
+    // Optionally disable or delete old key
+    for (const k of activeKeys) {
+      await iam.updateAccessKey({
+        UserName: userName,
+        AccessKeyId: k.AccessKeyId,
+        Status: 'Inactive'
+      }).promise();
+    }
+
+    res.json(newKey);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // === K8s Pods & Logs ===
 app.get('/api/pods', async (req, res) => {
   try {
@@ -84,9 +110,16 @@ app.get('/api/pods/:name/logs', async (req, res) => {
 
 // === Docker Cleanup ===
 app.post('/api/docker/prune', (req, res) => {
-  exec('docker system prune -a --volumes -f', (error, stdout, stderr) => {
-    if (error) return res.status(500).json({ error: stderr });
-    res.json({ message: 'Docker cleanup completed', output: stdout });
+  const spawn = require('child_process').spawn;
+  const prune = spawn('sh', ['-c', 'yes | docker system prune -a --volumes']);
+
+  let output = '';
+  prune.stdout.on('data', data => output += data.toString());
+  prune.stderr.on('data', data => output += data.toString());
+
+  prune.on('close', code => {
+    if (code === 0) res.json({ message: '✅ Docker cleaned', output });
+    else res.status(500).json({ error: 'Failed to clean Docker', output });
   });
 });
 
@@ -152,15 +185,19 @@ app.get('/api/s3-buckets', async (req, res) => {
   }
 });
 
+// === /api/stats (dashboard design) ===
 app.get('/api/stats', async (req, res) => {
   try {
-    const pods = await coreV1Api.listNamespacedPod('dct');
     const instances = await ec2.describeInstances().promise();
     const users = await iam.listUsers().promise();
+    const pods = await coreV1Api.listNamespacedPod('dct');
     const trivy = require('./trivy-output.json');
 
-    const ec2Running = instances.Reservations.flatMap(r => r.Instances).filter(i => i.State.Name === 'running').length;
-    const ec2Stopped = instances.Reservations.flatMap(r => r.Instances).filter(i => i.State.Name === 'stopped').length;
+    const flatInstances = instances.Reservations.flatMap(r => r.Instances);
+    const ec2Stats = {
+      running: flatInstances.filter(i => i.State.Name === 'running').length,
+      stopped: flatInstances.filter(i => i.State.Name === 'stopped').length
+    };
 
     const accessKeyAges = await Promise.all(users.Users.map(async user => {
       const keys = await iam.listAccessKeys({ UserName: user.UserName }).promise();
@@ -169,38 +206,30 @@ app.get('/api/stats', async (req, res) => {
       }));
     }));
 
-    const flatAges = accessKeyAges.flat();
+    const flatKeys = accessKeyAges.flat();
     const iamStats = {
-      active: flatAges.filter(k => k.days <= 30).length,
-      warning: flatAges.filter(k => k.days > 30 && k.days <= 60).length,
-      stale: flatAges.filter(k => k.days > 60).length
+      green: flatKeys.filter(k => k.days <= 30).length,
+      yellow: flatKeys.filter(k => k.days > 30 && k.days <= 60).length,
+      red: flatKeys.filter(k => k.days > 60).length
     };
 
     const podStats = {
       running: pods.body.items.filter(p => p.status.phase === 'Running').length,
-      failed: pods.body.items.filter(p => p.status.phase === 'Failed').length,
-      terminated: pods.body.items.filter(p => ['Succeeded', 'Unknown'].includes(p.status.phase)).length
+      failed: pods.body.items.filter(p => p.status.phase !== 'Running').length
     };
 
-    const vulnStats = { critical: 0, high: 0, medium: 0 };
     const flatVulns = Array.isArray(trivy)
       ? trivy.flatMap(r => r.Vulnerabilities || [])
       : (trivy.Results || []).flatMap(r => r.Vulnerabilities || []);
 
-    flatVulns.forEach(v => {
-      if (v.Severity === 'CRITICAL') vulnStats.critical++;
-      else if (v.Severity === 'HIGH') vulnStats.high++;
-      else if (v.Severity === 'MEDIUM') vulnStats.medium++;
-    });
+    const vulnStats = {
+      critical: flatVulns.filter(v => v.Severity === 'CRITICAL').length,
+      high: flatVulns.filter(v => v.Severity === 'HIGH').length,
+      medium: flatVulns.filter(v => v.Severity === 'MEDIUM').length
+    };
 
-    res.json({
-      ec2: { running: ec2Running, stopped: ec2Stopped },
-      iam: iamStats,
-      pods: podStats,
-      vuln: vulnStats
-    });
+    res.json({ ec2: ec2Stats, iam: iamStats, pods: podStats, vuln: vulnStats });
   } catch (err) {
-    console.error('❌ /api/stats failed:', err.message);
     res.status(500).json({ error: err.message });
   }
 });

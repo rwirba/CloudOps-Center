@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, Typography, Chip, Tabs, Tab } from '@mui/material';
+import {
+  Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
+  Paper, Button, Typography, Chip, Tabs, Tab
+} from '@mui/material';
 
 function K8sMonitoring() {
   const [pods, setPods] = useState([]);
@@ -15,16 +18,18 @@ function K8sMonitoring() {
   }, []);
 
   const fetchLogs = (podName, namespace = 'dct') => {
-    axios.get(`/api/pods/${podName}/logs?namespace=${namespace}`).then(res => {
-      setSelectedPod(podName);
-      setLogs(res.data);
-    });
+    axios.get(`/api/pods/${podName}/logs?namespace=${namespace}`)
+      .then(res => {
+        setSelectedPod(podName);
+        setLogs(res.data);
+      })
+      .catch(() => setLogs('⚠️ Unable to fetch logs. Check pod name or permissions.'));
   };
 
   const cleanupDocker = () => {
     axios.post('/api/docker/prune')
       .then(() => alert('✅ Docker cleanup completed.'))
-      .catch(err => alert('❌ Cleanup failed: ' + err.message));
+      .catch(err => alert('❌ Docker cleanup failed: ' + err.response?.data?.error || err.message));
   };
 
   return (
@@ -59,7 +64,12 @@ function K8sMonitoring() {
                     </TableCell>
                     <TableCell>{pod.metadata.namespace}</TableCell>
                     <TableCell>
-                      <Button size="small" onClick={() => fetchLogs(pod.metadata.name, pod.metadata.namespace)}>View Logs</Button>
+                      <Button
+                        size="small"
+                        onClick={() => fetchLogs(pod.metadata.name, pod.metadata.namespace)}
+                      >
+                        View Logs
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -70,7 +80,15 @@ function K8sMonitoring() {
           {selectedPod && (
             <Paper sx={{ mt: 2, p: 2 }}>
               <Typography variant="h6">Logs for {selectedPod}</Typography>
-              <pre style={{ background: '#111', color: '#0f0', padding: '10px', maxHeight: '300px', overflow: 'auto' }}>{logs}</pre>
+              <pre style={{
+                background: '#111',
+                color: '#0f0',
+                padding: '10px',
+                maxHeight: '300px',
+                overflow: 'auto'
+              }}>
+                {logs}
+              </pre>
             </Paper>
           )}
         </Box>
@@ -83,7 +101,14 @@ function K8sMonitoring() {
           <Typography>CPU: {metrics.cpu.percent}% of {metrics.cpu.cores} cores</Typography>
           <Typography>RAM: {metrics.memory.percent}% used</Typography>
           <Typography>Running Pods: {metrics.pods}</Typography>
-          <Button onClick={cleanupDocker} variant="contained" color="error" sx={{ mt: 2 }}>Cleanup Docker</Button>
+          <Button
+            onClick={cleanupDocker}
+            variant="contained"
+            color="error"
+            sx={{ mt: 2 }}
+          >
+            Cleanup Docker
+          </Button>
         </Box>
       )}
     </Box>
