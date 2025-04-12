@@ -28,6 +28,25 @@ app.get('/api/instances', async (req, res) => {
   }
 });
 
+app.get('/api/metrics/:instanceId', async (req, res) => {
+  const { instanceId } = req.params;
+  const params = {
+    Namespace: 'AWS/EC2',
+    MetricName: 'CPUUtilization',
+    Dimensions: [{ Name: 'InstanceId', Value: instanceId }],
+    StartTime: new Date(Date.now() - 3600 * 1000),
+    EndTime: new Date(),
+    Period: 300,
+    Statistics: ['Average']
+  };
+  try {
+    const data = await cloudwatch.getMetricStatistics(params).promise();
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // === IAM Users & Access Keys ===
 app.get('/api/iam-users', async (req, res) => {
   try {
@@ -97,6 +116,28 @@ app.get('/api/node-metrics', async (req, res) => {
       pods: podCount
     });
   } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// === Trivy Vulnerabilities ===
+app.get('/api/vulnerabilities', async (req, res) => {
+  try {
+    const raw = require('./trivy-output.json');
+    const scanResults = Array.isArray(raw) ? raw : (raw.Results || [raw]);
+
+    const vulnerabilities = scanResults.flatMap(result =>
+      result.Vulnerabilities?.map(v => ({
+        Target: result.Target,
+        PkgName: v.PkgName,
+        Severity: v.Severity,
+        Title: v.Title
+      })) || []
+    );
+
+    res.json(vulnerabilities);
+  } catch (err) {
+    console.error('Failed to load vulnerability data:', err.message);
     res.status(500).json({ error: err.message });
   }
 });
