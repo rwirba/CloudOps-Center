@@ -80,8 +80,14 @@ app.get('/api/metrics/:instanceId', async (req, res) => {
 // === IAM Users & Access Keys ===
 app.get('/api/iam-users', async (req, res) => {
   try {
-    const data = await iam.listUsers().promise();
-    res.json(data);
+    const userData = await iam.listUsers().promise();
+
+    const enrichedUsers = await Promise.all(userData.Users.map(async user => {
+      const keys = await iam.listAccessKeys({ UserName: user.UserName }).promise();
+      return { ...user, AccessKeys: keys.AccessKeyMetadata };
+    }));
+
+    res.json({ Users: enrichedUsers });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
