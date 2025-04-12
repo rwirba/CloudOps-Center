@@ -195,22 +195,24 @@ app.get('/api/stats', async (req, res) => {
 
     const flatInstances = instances.Reservations.flatMap(r => r.Instances);
     const ec2Stats = {
-      running: flatInstances.filter(i => i.State.Name === 'running').length,
-      stopped: flatInstances.filter(i => i.State.Name === 'stopped').length
+      running: flatInstances.filter(i => i.State?.Name === 'running').length,
+      stopped: flatInstances.filter(i => i.State?.Name === 'stopped').length
     };
 
-    const accessKeyAges = await Promise.all(users.Users.map(async user => {
-      const keys = await iam.listAccessKeys({ UserName: user.UserName }).promise();
-      return keys.AccessKeyMetadata.map(k => ({
-        days: Math.floor((new Date() - new Date(k.CreateDate)) / (1000 * 60 * 60 * 24))
-      }));
-    }));
+    const accessKeyAges = await Promise.all(
+      users.Users.map(async user => {
+        const keys = await iam.listAccessKeys({ UserName: user.UserName }).promise();
+        return keys.AccessKeyMetadata.map(k => ({
+          days: Math.floor((Date.now() - new Date(k.CreateDate)) / (1000 * 60 * 60 * 24))
+        }));
+      })
+    );
 
     const flatKeys = accessKeyAges.flat();
     const iamStats = {
-      green: flatKeys.filter(k => k.days <= 30).length,
-      yellow: flatKeys.filter(k => k.days > 30 && k.days <= 60).length,
-      red: flatKeys.filter(k => k.days > 60).length
+      active: flatKeys.filter(k => k.days <= 30).length,
+      warning: flatKeys.filter(k => k.days > 30 && k.days <= 60).length,
+      stale: flatKeys.filter(k => k.days > 60).length
     };
 
     const podStats = {
@@ -228,8 +230,14 @@ app.get('/api/stats', async (req, res) => {
       medium: flatVulns.filter(v => v.Severity === 'MEDIUM').length
     };
 
-    res.json({ ec2: ec2Stats, iam: iamStats, pods: podStats, vuln: vulnStats });
+    res.json({
+      ec2: ec2Stats,
+      iam: iamStats,
+      pods: podStats,
+      vuln: vulnStats
+    });
   } catch (err) {
+    console.error('❌ /api/stats failed:', err.message);
     res.status(500).json({ error: err.message });
   }
 });
