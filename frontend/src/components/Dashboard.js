@@ -1,22 +1,55 @@
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
-import DashboardOverview from '../pages/DashboardOverview';
+import React from 'react';
+import { Card, CardContent } from '@mui/material';
+import EC2Chart from './charts/EC2Chart';
+import IAMChart from './charts/IAMChart';
+import PodsChart from './charts/PodsChart';
+import VulnerabilitiesChart from './charts/VulnerabilitiesChart';
 
-function Dashboard() {
-  const [stats, setStats] = useState(null);
-
-  useEffect(() => {
-    axios.get('/api/stats')
-      .then(res => setStats(res.data))
-      .catch(() => setStats(null));
-  }, []);
-
+const Dashboard = () => {
   return (
-    <div style={{ padding: '20px' }}>
-      <h2 style={{ color: '#fff', paddingBottom: '10px' }}>DevOps Control Tower</h2>
-      <DashboardOverview stats={stats} />
-    </div>
+    <>
+      {/* Embedded grid styling */}
+      <style>
+        {`
+          .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 1.5rem;
+          }
+        `}
+      </style>
+
+      <div className="grid p-4">
+        <Card className="rounded-2xl shadow-xl">
+          <CardContent>
+            <h2 className="text-white text-lg font-semibold mb-2">EC2 Instances</h2>
+            <EC2Chart />
+          </CardContent>
+        </Card>
+
+        <Card className="rounded-2xl shadow-xl">
+          <CardContent>
+            <h2 className="text-white text-lg font-semibold mb-2">IAM Key Age</h2>
+            <IAMChart />
+          </CardContent>
+        </Card>
+
+        <Card className="rounded-2xl shadow-xl">
+          <CardContent>
+            <h2 className="text-white text-lg font-semibold mb-2">Kubernetes Pods</h2>
+            <PodsChart />
+          </CardContent>
+        </Card>
+
+        <Card className="rounded-2xl shadow-xl">
+          <CardContent>
+            <h2 className="text-white text-lg font-semibold mb-2">Vulnerabilities</h2>
+            <VulnerabilitiesChart />
+          </CardContent>
+        </Card>
+      </div>
+    </>
   );
-}
+};
 
 export default Dashboard;
