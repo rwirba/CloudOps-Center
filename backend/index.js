@@ -101,6 +101,16 @@ app.get('/api/node-metrics', async (req, res) => {
   }
 });
 
+// === S3 Buckets ===
+app.get('/api/s3-buckets', async (req, res) => {
+  try {
+    const data = await s3.listBuckets().promise();
+    res.json(data.Buckets);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.listen(port, '0.0.0.0', () => {
   console.log(`DevOps Control Tower backend running on port ${port}`);
 });
