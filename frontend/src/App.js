@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import Layout from './components/Layout';
+import Dashboard from './components/Dashboard';
 import DashboardOverview from './pages/DashboardOverview';
 import GitHubRepos from './components/GitHubRepos';
 import AWSResources from './pages/AWSResources';
@@ -48,7 +49,7 @@ function App() {
       <Router>
         <Layout>
           <Routes>
-            <Route path="/dashboard" element={<DashboardOverview />} />
+            <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/resources" element={<AWSResources instances={instances} users={users} onInstanceAction={handleInstanceAction} onRotateKey={handleRotateKey} />} />
             <Route path="/repos" element={<GitHubRepos username="rwirba" />} />
             <Route path="/scan" element={<TrivyScan />} />

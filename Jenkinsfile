@@ -10,7 +10,7 @@ pipeline {
   stages {
     stage('Checkout') {
       steps {
-        git 'https://github.com/rwirba/devOps-control-tower.git'
+        checkout scm
       }
     }
 
