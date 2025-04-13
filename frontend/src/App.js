@@ -9,6 +9,7 @@ import TrivyScan from './components/TrivyScan';
 import axios from 'axios';
 import { ThemeProvider } from '@mui/material/styles';
 import theme from './theme';
+import StatusPage from './pages/StatusPage';
 
 function App() {
   const [instances, setInstances] = useState([]);
@@ -53,6 +54,7 @@ function App() {
             <Route path="/repos" element={<GitHubRepos username="rwirba" />} />
             <Route path="/pods" element={<K8sMonitoring />} />
             <Route path="/scan" element={<TrivyScan />} />
+            <Route path="/status" element={<StatusPage />} />
           </Routes>
         </Layout>
       </Router>

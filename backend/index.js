@@ -242,6 +242,52 @@ app.get('/api/stats', async (req, res) => {
   }
 });
 
+app.get('/health', async (req, res) => {
+  const checks = [];
+
+  try {
+    await ec2.describeInstances({ MaxResults: 1 }).promise();
+    checks.push({ service: 'EC2', status: 'ok' });
+  } catch (e) {
+    checks.push({ service: 'EC2', status: 'fail', message: e.message });
+  }
+
+  try {
+    await iam.listUsers({ MaxItems: 1 }).promise();
+    checks.push({ service: 'IAM', status: 'ok' });
+  } catch (e) {
+    checks.push({ service: 'IAM', status: 'fail', message: e.message });
+  }
+
+  try {
+    const pods = await coreV1Api.listNamespacedPod('dct');
+    checks.push({ service: 'Kubernetes', status: 'ok', podCount: pods.body.items.length });
+  } catch (e) {
+    checks.push({ service: 'Kubernetes', status: 'fail', message: e.message });
+  }
+
+  try {
+    require('./trivy-output.json');
+    checks.push({ service: 'Trivy Scan File', status: 'ok' });
+  } catch (e) {
+    checks.push({ service: 'Trivy Scan File', status: 'fail', message: e.message });
+  }
+
+  try {
+    await s3.listBuckets().promise();
+    checks.push({ service: 'S3', status: 'ok' });
+  } catch (e) {
+    checks.push({ service: 'S3', status: 'fail', message: e.message });
+  }
+
+  const isHealthy = checks.every(c => c.status === 'ok');
+  res.status(isHealthy ? 200 : 500).json({
+    status: isHealthy ? 'ok' : 'fail',
+    timestamp: new Date().toISOString(),
+    checks,
+  });
+});
+
 app.listen(port, '0.0.0.0', () => {
   console.log(`DevOps Control Tower backend running on port ${port}`);
 });

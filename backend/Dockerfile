@@ -5,4 +5,4 @@ RUN npm install
 COPY . .
 COPY trivy-output.json ./trivy-output.json
 EXPOSE 4000
-CMD ["node", "index.js"]
+CMD ["node", "index.js","health-check.js"]

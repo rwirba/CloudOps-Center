@@ -6,6 +6,7 @@ import LockIcon from '@mui/icons-material/Lock';
 import BarChartIcon from '@mui/icons-material/BarChart';
 import { useNavigate } from 'react-router-dom';
 import LayersIcon from '@mui/icons-material/Layers';
+import HealthAndSafetyIcon from '@mui/icons-material/HealthAndSafety';
 
 const drawerWidth = 240;
 
@@ -55,6 +56,10 @@ const Layout = ({ children }) => {
             <ListItemIcon><LayersIcon /></ListItemIcon>
             <ListItemText primary="K8s Monitoring" />
           </ListItem>
+          <ListItem button onClick={() => navigate('/status')}>
+            <ListItemIcon><HealthAndSafetyIcon /></ListItemIcon>
+            <ListItemText primary="System Status" />
+         </ListItem>
         </List>
       </Drawer>
       <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
