@@ -32,7 +32,7 @@ function StatusPage() {
 
   useEffect(() => {
     fetchStatus(); // initial fetch
-    const interval = setInterval(fetchStatus, 10000); // every 10s
+    const interval = setInterval(fetchStatus, 900000); // every 15 minutes
     return () => clearInterval(interval); // cleanup
   }, []);
 
