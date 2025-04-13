@@ -28,10 +28,10 @@ function DashboardOverview({ stats }) {
       `Running: ${stats.ec2.running}`
     ),
     chartBlock('IAM Access Keys',
-      [stats.iam.green, stats.iam.yellow, stats.iam.red],
+      [stats.iam.active, stats.iam.warning, stats.iam.stale],
       ['Active (0-30d)', 'Warning (31-60d)', 'Stale (60+d)'],
       ['#4CAF50', '#FFC107', '#F44336'],
-      `Total Keys: ${stats.iam.green + stats.iam.yellow + stats.iam.red}`    
+      `Total Keys: ${stats.iam.active + stats.iam.warning + stats.iam.stale}`  
     ),
     chartBlock('Kubernetes Pods',
       [stats.pods.running, stats.pods.failed],
