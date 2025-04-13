@@ -87,6 +87,37 @@ app.post('/api/rotate-access-key', async (req, res) => {
   }
 });
 
+// === EC2 Instance Control ===
+app.post('/api/start', async (req, res) => {
+  const { instanceId } = req.body;
+  try {
+    const data = await ec2.startInstances({ InstanceIds: [instanceId] }).promise();
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/stop', async (req, res) => {
+  const { instanceId } = req.body;
+  try {
+    const data = await ec2.stopInstances({ InstanceIds: [instanceId] }).promise();
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/terminate', async (req, res) => {
+  const { instanceId } = req.body;
+  try {
+    const data = await ec2.terminateInstances({ InstanceIds: [instanceId] }).promise();
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // === K8s Pods & Logs ===
 app.get('/api/pods', async (req, res) => {
   try {
