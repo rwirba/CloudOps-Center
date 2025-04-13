@@ -65,8 +65,15 @@ pipeline {
         }
       }
     }
+    stage('Health Check') {
+      steps {
+        sh '''
+          echo "🩺 Running health check..."
+          node backend/health-check.js || exit 1
+        '''
+      }
+    }
   }
-
   post {
     always {
       echo '🧹 Cleaning Jenkins workspace...'
