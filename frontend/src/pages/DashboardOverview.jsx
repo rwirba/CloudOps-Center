@@ -9,7 +9,6 @@ function DashboardOverview({ stats }) {
   const chartData = (labels, data, colors) => ({
     labels,
     datasets: [{
-      label: 'Count',
       data,
       backgroundColor: colors,
       borderWidth: 1
@@ -17,47 +16,49 @@ function DashboardOverview({ stats }) {
   });
 
   return (
-    <Grid container spacing={3}>
+    <Grid container spacing={3} sx={{ mt: 1 }}>
       {stats && (
         <>
-          {/* EC2 and IAM merged chart */}
-          <Grid item xs={12} md={6}>
-            <Paper sx={{ p: 3, background: '#1e1e2f' }}>
-              <Typography variant="h6" color="white">EC2 & IAM</Typography>
+          <Grid item xs={12} md={6} lg={3}>
+            <Paper sx={{ p: 2 }}>
+              <Typography variant="h6">EC2 Instances</Typography>
               <Doughnut data={chartData(
-                ['EC2 Running', 'EC2 Stopped', 'IAM (0-30d)', 'IAM (31-60d)', 'IAM (60+d)'],
-                [
-                  stats.ec2.running,
-                  stats.ec2.stopped,
-                  stats.iam.active,
-                  stats.iam.warning,
-                  stats.iam.stale
-                ],
-                ['#00e676', '#ff3d00', '#00e676', '#ffd700', '#ff0000']
+                ['Running', 'Stopped'],
+                [stats.ec2.running, stats.ec2.stopped],
+                ['#4caf50', '#f44336']  // green, red
               )} />
             </Paper>
           </Grid>
 
-          {/* Kubernetes Pods chart */}
-          <Grid item xs={12} md={3}>
-            <Paper sx={{ p: 3, background: '#1e1e2f' }}>
-              <Typography variant="h6" color="white">Kubernetes Pods</Typography>
+          <Grid item xs={12} md={6} lg={3}>
+            <Paper sx={{ p: 2 }}>
+              <Typography variant="h6">IAM Access Keys</Typography>
+              <Doughnut data={chartData(
+                ['Active (0–30d)', 'Warning (31–60d)', 'Stale (60+d)'],
+                [stats.iam.active, stats.iam.warning, stats.iam.stale],
+                ['#4caf50', '#ffc107', '#f44336'] // green, yellow, red
+              )} />
+            </Paper>
+          </Grid>
+
+          <Grid item xs={12} md={6} lg={3}>
+            <Paper sx={{ p: 2 }}>
+              <Typography variant="h6">Kubernetes Pods</Typography>
               <Doughnut data={chartData(
                 ['Running', 'Failed'],
                 [stats.pods.running, stats.pods.failed],
-                ['#00e676', '#ff3d00']
+                ['#4caf50', '#f44336']  // green, red
               )} />
             </Paper>
           </Grid>
 
-          {/* Vulnerabilities chart */}
-          <Grid item xs={12} md={3}>
-            <Paper sx={{ p: 3, background: '#1e1e2f' }}>
-              <Typography variant="h6" color="white">Vulnerabilities</Typography>
+          <Grid item xs={12} md={6} lg={3}>
+            <Paper sx={{ p: 2 }}>
+              <Typography variant="h6">Vulnerabilities</Typography>
               <Doughnut data={chartData(
                 ['Critical', 'High', 'Medium'],
                 [stats.vuln.critical, stats.vuln.high, stats.vuln.medium],
-                ['#b71c1c', '#ff1744', '#ffd600']
+                ['#b71c1c', '#e53935', '#ffc107'] // danger red, red, yellow
               )} />
             </Paper>
           </Grid>
