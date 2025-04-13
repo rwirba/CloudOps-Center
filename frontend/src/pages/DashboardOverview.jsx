@@ -31,7 +31,7 @@ function DashboardOverview({ stats }) {
       [stats.iam.green, stats.iam.yellow, stats.iam.red],
       ['Active (0-30d)', 'Warning (31-60d)', 'Stale (60+d)'],
       ['#4CAF50', '#FFC107', '#F44336'],
-      `Active: ${stats.iam.green}`
+      `Total Keys: ${stats.iam.green + stats.iam.yellow + stats.iam.red}`    
     ),
     chartBlock('Kubernetes Pods',
       [stats.pods.running, stats.pods.failed],
