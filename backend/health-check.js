@@ -1,5 +1,5 @@
 const axios = require('axios');
-const baseUrl = process.env.CTRL_TOWER_URL || 'http://dct.kihhuf.org';
+const baseUrl = process.env.CTRL_TOWER_URL || 'http://dct.mitechnology.org';
 
 (async () => {
   try {

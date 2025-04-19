@@ -31,7 +31,7 @@ dct/
 - Ingress controller installed (NGINX)
 - Helm 3 installed
 - Docker images pushed to Docker Hub (private or public)
-- Subdomain (e.g., `dct.kihhuf.org`) configured to point to Ingress IP
+- Subdomain (e.g., `dct.mitechnology.org`) configured to point to Ingress IP
 
 ---
 
@@ -98,7 +98,7 @@ helm upgrade --install dct charts/dct \
 
 2. Wait for DNS propagation and access the app:
 ```
-http://dct.kihhuf.org
+http://dct.mitechnology.org
 ```
 
 ---

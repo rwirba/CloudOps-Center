@@ -8,7 +8,7 @@ backend:
 
 ingress:
   enabled: true
-  host: dct.kihhuf.org
+  host: dct.mitechnology.org
   tls:
     enabled: true
     secretName: dct-tls

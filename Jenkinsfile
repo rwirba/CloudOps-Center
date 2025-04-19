@@ -70,7 +70,7 @@ pipeline {
         sh '''
           echo "🩺 Checking DevOps Control Tower /health..."
           sleep 10  # wait for pod rollout if necessary
-          curl -sf http://dct.kihhuf.org/health || {
+          curl -sf http://dct.mitechnology.org/health || {
             echo "❌ Health check failed"; exit 1;
           }
         '''
